@@ -1,6 +1,6 @@
 # Deploy VM from template
 resource "vsphere_virtual_machine" "vm1" {
-  name             = "Terraform-VM1"
+  name             = var.vm-name
   resource_pool_id = data.vsphere_compute_cluster.cluster.resource_pool_id
   datastore_id     = data.vsphere_datastore.datastore.id
 
@@ -25,7 +25,7 @@ resource "vsphere_virtual_machine" "vm1" {
 
     customize {
       linux_options {
-        host_name = "terraform-vm1"
+        host_name = var.vm-name
         domain    = "vishwacloudlab.in"
       }
 
@@ -38,3 +38,5 @@ resource "vsphere_virtual_machine" "vm1" {
     }
   }
 }
+
+variable "vm-name" {}
