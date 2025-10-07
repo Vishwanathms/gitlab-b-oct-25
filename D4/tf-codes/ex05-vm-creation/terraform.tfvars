@@ -1,0 +1,1 @@
+vm-name = "terraform-vm1"
