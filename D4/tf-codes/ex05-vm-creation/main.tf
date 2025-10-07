@@ -30,7 +30,7 @@ resource "vsphere_virtual_machine" "vm1" {
       }
 
       network_interface {
-        ipv4_address = "172.16.101.50"
+        ipv4_address = var.ip-add
         ipv4_netmask = 24
       }
 
@@ -40,3 +40,4 @@ resource "vsphere_virtual_machine" "vm1" {
 }
 
 variable "vm-name" {}
+variable "ip-add" {}
