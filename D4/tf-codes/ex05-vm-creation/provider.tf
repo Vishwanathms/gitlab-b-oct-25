@@ -12,7 +12,7 @@ provider "vsphere" {
   # password       = "VMware1!VMware1!"
   user = var.vcenter_user
   password = var.vcenter_password
-  vsphere_server = "vcenter01.vishwacloudlab.in"
+
 
   # Disable SSL verify if using self-signed certificate
   allow_unverified_ssl = true

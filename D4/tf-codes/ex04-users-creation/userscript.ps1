@@ -17,10 +17,17 @@ foreach ($u in $users) {
                       -EmailAddress "$u@example.com"
 
     # Assign Administrator role
+<<<<<<< HEAD
     # New-VIPermission -Entity (Get-Folder -Name "Datacenters") `
     #                  -Principal "vsphere.local\$u" `
     #                  -Role "Administrator" `
     #                  -Propagate $true
+=======
+    New-VIPermission -Entity (Get-Folder -Name "Datacenters") `
+                     -Principal "vsphere.local\$u" `
+                     -Role "Administrator" `
+                     -Propagate $true
+>>>>>>> 0cda582444cc944a75ce79aad4bcb24e13eb5c32
 }
 
 Disconnect-VIServer -Confirm:$false
