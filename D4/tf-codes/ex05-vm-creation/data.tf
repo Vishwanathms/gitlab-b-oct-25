@@ -17,7 +17,7 @@ data "vsphere_datastore" "datastore" {
 
 # Template
 data "vsphere_virtual_machine" "template" {
-  name          = "ubuntu-noble-24.04-cloudimg"
+  name          = "ubuntu-master"
   datacenter_id = data.vsphere_datacenter.dc.id
 }
 
