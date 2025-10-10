@@ -62,7 +62,7 @@ services:
     depends_on:
       - redis
     ports:
-      - "5000:5000"
+      - "9010:5000"
     command: ["flask", "run", "--host=0.0.0.0"]
 ````
 
@@ -127,7 +127,7 @@ if __name__ == "__main__":
 
 2. **Access the app**
 
-   * Open your browser and go to → [http://localhost:5000](http://localhost:5000)
+   * Open your browser and go to → [http://<publicip>:<port>](http://<publicip>:<port>)
    * You should see something like:
 
      ```
@@ -142,7 +142,8 @@ if __name__ == "__main__":
 4. **Stop the containers**
 
    ```bash
-   docker-compose down
+   docker-compose rm -s -f python-app
+   docker-compose up -d
    ```
 
 ---
