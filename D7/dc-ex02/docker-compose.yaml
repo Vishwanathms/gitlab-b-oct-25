@@ -14,10 +14,12 @@ services:
     environment:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+      - FLASK_ENV=development       # enables debug mode (auto reload)
+      - FLASK_APP=app.py
     volumes:
       - ./app.py:/app/app.py    # Mount app.py from outside
     depends_on:
       - redis
     ports:
       - "9014:5000"
-    command: ["python", "app.py"]
+    command: ["flask", "run", "--host=0.0.0.0"]
