@@ -18,4 +18,6 @@ services:
       - ./app.py:/app/app.py    # Mount app.py from outside
     depends_on:
       - redis
+    ports:
+      - "9014:5000"
     command: ["python", "app.py"]
