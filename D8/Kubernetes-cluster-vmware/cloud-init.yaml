@@ -1,0 +1,18 @@
+#cloud-config
+users:
+  - name: ubuntu
+    lock_passwd: False
+    groups: [sudo]
+    shell: /bin/bash
+    sudo: ["ALL=(ALL) NOPASSWD:ALL"]
+    passwd: "${ubuntu_password_hash}"
+    ssh_authorized_keys:
+      - ${ssh_key}
+chpasswd: { expire: False }
+ssh_pwauth: True
+package_update: true
+packages:
+  - curl
+  - git
+runcmd:
+  - echo 'Password login enabled for lab. Disable after use.' > /etc/motd.d/99-lab.txt

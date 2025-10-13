@@ -23,7 +23,6 @@ resource "vsphere_virtual_machine" "vm1" {
   clone {
     template_uuid = data.vsphere_virtual_machine.template.id
 
-<<<<<<< HEAD
     # customize {
     #   linux_options {
     #     host_name = var.vm-name
@@ -41,27 +40,10 @@ resource "vsphere_virtual_machine" "vm1" {
   # Avoid hang
   wait_for_guest_net_timeout = 0
   wait_for_guest_ip_timeout  = 0
-=======
-    customize {
-      linux_options {
-        host_name = var.vm-name
-        domain    = "vishwacloudlab.in"
-      }
-
-      network_interface {
-        ipv4_address = var.ip-add
-        ipv4_netmask = 24
-      }
-
-      ipv4_gateway = "172.16.101.1"
-    }
-  }
->>>>>>> 0cda582444cc944a75ce79aad4bcb24e13eb5c32
 }
 
 variable "vm-name" {}
 variable "ip-add" {}
-<<<<<<< HEAD
 variable "vcenter_user" {}
 variable "vcenter_password" {}
 variable "access_key" {}
@@ -69,5 +51,3 @@ variable "secret_key" {}
 # variable "dynamodb_table" {}
 
 variable "env" {}
-=======
->>>>>>> 0cda582444cc944a75ce79aad4bcb24e13eb5c32
