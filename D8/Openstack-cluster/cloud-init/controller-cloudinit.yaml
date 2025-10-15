@@ -1,0 +1,35 @@
+#cloud-config
+hostname: openstack-controller
+manage_etc_hosts: true
+
+users:
+  - name: ubuntu
+    #lock_passwd: False
+    groups: sudo
+    shell: /bin/bash
+    sudo: "ALL=(ALL) NOPASSWD:ALL"
+    ssh_authorized_keys:
+      - ${ssh_key}   # NOTE: we'll replace it via Terraform before injection
+
+
+runcmd:
+  - [ sh, -c, "sudo apt-get update || true" ]
+  - [ sh, -c, "sudo apt-get install -y git python3-pip python3-venv sudo" ]
+  - [ sh, -c, "adduser --disabled-password --gecos '' stack || true" ]
+  - [ sh, -c, "echo 'stack ALL=(ALL) NOPASSWD:ALL' | sudo tee /etc/sudoers.d/stack" ]
+  - [ sh, -c, "cd /home/stack || mkdir -p /home/stack ; chown stack:stack /home/stack" ]
+  - [ sh, -c, "su - stack -c 'git clone https://opendev.org/openstack/devstack.git /home/stack/devstack || true'" ]
+  - [ sh, -c, "cat <<'EOF' > /home/stack/devstack/local.conf
+[[local|localrc]]
+ADMIN_PASSWORD=Openstack_123
+DATABASE_PASSWORD=Openstack_123
+RABBIT_PASSWORD=Openstack_123
+SERVICE_PASSWORD=Openstack_123
+HOST_IP=157.119.43.38
+LOGFILE=/opt/devstack.log
+# minimal services
+ENABLED_SERVICES=key,g-api,g-reg,n-api,n-cond,n-sch,n-novnc,n-cpu,horizon,mysql,rabbit,placement
+
+EOF" ]
+  - [ sh, -c, "chown stack:stack /home/stack/devstack/local.conf" ]
+  - [ sh, -c, "su - stack -c 'cd /home/stack/devstack && ./stack.sh' > /var/log/devstack-install.log 2>&1 || true" ]

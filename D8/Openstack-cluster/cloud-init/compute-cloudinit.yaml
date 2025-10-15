@@ -1,0 +1,16 @@
+#cloud-config
+hostname: openstack-compute
+manage_etc_hosts: true
+
+users:
+  - name: ubuntu
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    groups: sudo
+    shell: /bin/bash
+    ssh_authorized_keys:
+      - ${ssh_key}
+
+runcmd:
+  - [ sh, -c, "apt-get update || true" ]
+  - [ sh, -c, "apt-get install -y python3-pip python3-venv git" ]
+  - [ sh, -c, "echo 'Compute node ready for manual join. Configure nova/placement and neutron to connect to controller.' > /var/log/compute-bootstrap.log" ]
