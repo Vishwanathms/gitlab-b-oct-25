@@ -14,7 +14,7 @@ variable "controller_vm" {
 }
 variable "compute_count" {
   type = number
-  default = 2
+  default = 1
 }
 variable "compute_cpus" {
   type = number

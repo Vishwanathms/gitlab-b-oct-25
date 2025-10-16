@@ -35,7 +35,8 @@ resource "vsphere_virtual_machine" "controller" {
 
   disk {
     label            = "disk0"
-    size             = data.vsphere_virtual_machine.template.disks.0.size
+    #size             = data.vsphere_virtual_machine.template.disks.0.size
+    size = 60
     eagerly_scrub    = false
     thin_provisioned = true
   }
@@ -92,7 +93,8 @@ resource "vsphere_virtual_machine" "compute" {
 
   disk {
     label            = "disk0"
-    size             = data.vsphere_virtual_machine.template.disks.0.size
+    size            = 40
+    #size             = data.vsphere_virtual_machine.template.disks.0.size
     eagerly_scrub    = false
     thin_provisioned = true
   }
@@ -112,6 +114,8 @@ resource "vsphere_virtual_machine" "compute" {
         ipv4_address = var.compute_ip_add[count.index] # DHCP or set static
         ipv4_netmask = 24
       }
+      dns_server_list = ["8.8.8.8", "1.1.1.1"]
+      ipv4_gateway = "157.119.43.1"
     }
   }
 
