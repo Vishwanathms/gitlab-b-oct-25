@@ -7,7 +7,7 @@ locals {
 
 # Deploy VM from template
 resource "vsphere_virtual_machine" "vm1" {
-  count = length(var.vm-name)
+  count            = length(var.vm-name)
   name             = "${var.vm-name[count.index]}-${count.index + 1}"
   resource_pool_id = data.vsphere_resource_pool.pool.id
   datastore_id     = data.vsphere_datastore.datastore.id
@@ -48,7 +48,7 @@ resource "vsphere_virtual_machine" "vm1" {
 
       }
       dns_server_list = ["8.8.8.8", "1.1.1.1"]
-      ipv4_gateway = "157.119.43.1"
+      ipv4_gateway    = "157.119.43.1"
     }
   }
   extra_config = {
@@ -63,7 +63,7 @@ resource "vsphere_virtual_machine" "vm1" {
 }
 
 resource "null_resource" "common_install" {
-  count = length(vsphere_virtual_machine.vm1)
+  count      = length(vsphere_virtual_machine.vm1)
   depends_on = [vsphere_virtual_machine.vm1]
   # SSH Connection
   connection {
@@ -71,8 +71,8 @@ resource "null_resource" "common_install" {
     user        = "ubuntu"
     private_key = file(var.private_key_path)
     #host        = vsphere_virtual_machine.vm1[count.index].ipv4_address
-    host        = var.ip-add[count.index]
-    timeout     = "2m"
+    host    = var.ip-add[count.index]
+    timeout = "2m"
   }
 
   # Step 1: Common Setup
@@ -90,7 +90,7 @@ resource "null_resource" "common_install" {
 
 
 resource "null_resource" "node_install" {
-  count = length(vsphere_virtual_machine.vm1)
+  count      = length(vsphere_virtual_machine.vm1)
   depends_on = [null_resource.common_install]
   # SSH Connection
   connection {
@@ -98,8 +98,8 @@ resource "null_resource" "node_install" {
     user        = "ubuntu"
     private_key = file(var.private_key_path)
     #host        = vsphere_virtual_machine.vm1[count.index].ipv4_address
-    host        = var.ip-add[count.index]
-    timeout     = "2m"
+    host    = var.ip-add[count.index]
+    timeout = "2m"
   }
 
   # Step 1: Common Setup

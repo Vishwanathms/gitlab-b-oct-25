@@ -1,6 +1,6 @@
 locals {
   controller_cloudinit = templatefile("${path.module}/cloud-init/controller-cloudinit-v1.yaml", {
-    #ubuntu_password_hash = var.ubuntu_password_hash
+    ubuntu_password_hash = var.ubuntu_password_hash
     ssh_key              = var.ssh_key
   })
   compute_cloudinit = templatefile("${path.module}/cloud-init/compute-cloudinit.yaml", {

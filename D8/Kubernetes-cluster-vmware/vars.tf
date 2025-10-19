@@ -1,8 +1,8 @@
 variable "vm-name" {
-  type = list 
+  type = list(any)
 }
 variable "ip-add" {
-    type = list 
+  type = list(any)
 }
 variable "vcenter_user" {}
 variable "vcenter_password" {}
@@ -15,7 +15,7 @@ variable "ubuntu_password_hash" {
 variable "ssh_key" {
   description = "SSH key for the ubuntu user"
   type        = string
-  default = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDPXnCMxKETYtAGriigIJ4fULx53hw4Ahej2H3FQ9Afze4B0vMy/ODxBYCM4juvNrXp/q49A38zxfCc0EPF9FK7ucLt9w4f2rMdGUBtU9LjGoA1vjfJltiTG+8F1ltL710GbldH7TiGVsbj2fH3lz+OPXVduqDR5tzHB/7DbLx6QtpFNDZo1BLUVPgC1AF9HHbQ7suguXhT9yFhN1zai026N2yVoBpE6Z6qxffKWcxFKpW7hD14fH/8a0pB5U8fiH30ApTpFvlATPJiDOe2st45jyVBbWJ4L51ahuMrbaWMVJ3nzbldhqCA5/ZqCfQeWpI2mNFWwoAVYlwOhKhq5eEkc6KOgFfRbe4a2O0n8WfO0Z3hOLP818p4VY/+7kimSRJrERbNk8TRmpqQDd87CGf1hNEEx+lOA91bytkdTX8V/xuYCQHkv++8BJjovgYHR+PnXopzZP5p80Ffv974MpnG97+1EmoRwxocDCNeyVDQ0jxw1VLDxsg2CLxZQCN2LMk= admin@DESKTOP-O7MI7ID"
+  default     = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDPXnCMxKETYtAGriigIJ4fULx53hw4Ahej2H3FQ9Afze4B0vMy/ODxBYCM4juvNrXp/q49A38zxfCc0EPF9FK7ucLt9w4f2rMdGUBtU9LjGoA1vjfJltiTG+8F1ltL710GbldH7TiGVsbj2fH3lz+OPXVduqDR5tzHB/7DbLx6QtpFNDZo1BLUVPgC1AF9HHbQ7suguXhT9yFhN1zai026N2yVoBpE6Z6qxffKWcxFKpW7hD14fH/8a0pB5U8fiH30ApTpFvlATPJiDOe2st45jyVBbWJ4L51ahuMrbaWMVJ3nzbldhqCA5/ZqCfQeWpI2mNFWwoAVYlwOhKhq5eEkc6KOgFfRbe4a2O0n8WfO0Z3hOLP818p4VY/+7kimSRJrERbNk8TRmpqQDd87CGf1hNEEx+lOA91bytkdTX8V/xuYCQHkv++8BJjovgYHR+PnXopzZP5p80Ffv974MpnG97+1EmoRwxocDCNeyVDQ0jxw1VLDxsg2CLxZQCN2LMk= admin@DESKTOP-O7MI7ID"
 }
 variable "env" {}
 variable "private_key_path" {

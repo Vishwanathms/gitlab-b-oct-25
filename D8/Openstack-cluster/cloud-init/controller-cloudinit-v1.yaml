@@ -7,40 +7,18 @@ users:
     groups: sudo
     shell: /bin/bash
     sudo: "ALL=(ALL) NOPASSWD:ALL"
+    passwd: "${ubuntu_password_hash}"
+    ssh_authorized_keys:
+      - ${ssh_key}
+    lock_passwd: false
+  - name: stack
+    groups: sudo
+    shell: /bin/bash
+    sudo: "ALL=(ALL) NOPASSWD:ALL"
+    passwd: "${ubuntu_password_hash}"
     ssh_authorized_keys:
       - ${ssh_key}
 
-runcmd:
-  - [ sh, -c, "apt-get update || true" ]
-  - [ sh, -c, "DEBIAN_FRONTEND=noninteractive apt-get install -y git python3-pip python3-venv sudo || true" ]
-  - [ sh, -c, "id -u stack >/dev/null 2>&1 || adduser --disabled-password --gecos '' stack" ]
-  - [ sh, -c, "echo 'stack ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/stack && chmod 0440 /etc/sudoers.d/stack" ]
-  - [ sh, -c, "mkdir -p /home/stack && chown stack:stack /home/stack" ]
-  - [ sh, -c, "sudo -u stack git clone https://opendev.org/openstack/devstack.git /home/stack/devstack || true" ]
-  - [ sh, -c, "cat <<'EOF' > /home/stack/start.sh
-#!/usr/bin/env bash
-set -euo pipefail
 
-cd ~/devstack
-
-# Write minimal local.conf per DevStack docs
-cat > local.conf <<'LCONF'
-[[local|localrc]]
-ADMIN_PASSWORD=Openstack_123
-DATABASE_PASSWORD=Openstack_123
-RABBIT_PASSWORD=Openstack_123
-SERVICE_PASSWORD=Openstack_123
-# Set HOST_IP if auto-detection is unreliable; replace with the VM's primary IP
-HOST_IP=157.119.43.38
-LCONF
-
-# Optional: uncomment and adjust safe ranges if needed
-# echo 'IPV4_ADDRS_SAFE_TO_USE=172.31.1.0/24' >> local.conf
-# echo 'FLOATING_RANGE=192.168.20.0/25' >> local.conf
-
-# Run devstack
-./stack.sh
-EOF
-chmod +x /home/stack/start.sh
-chown stack:stack /home/stack/start.sh" ]
-  - [ sh, -c, "sudo -u stack /home/stack/start.sh > /var/log/devstack-install.log 2>&1 || true" ]
+package_update: true
+package_upgrade: true
