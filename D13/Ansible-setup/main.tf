@@ -18,7 +18,7 @@ locals {
 resource "vsphere_virtual_machine" "vm1" {
   #count = length(var.vm-name)
   count = length(var.users)
-  name             = "${var.users[count.index].name}"
+  name             = "ansi-${var.users[count.index].name}"
   resource_pool_id = data.vsphere_resource_pool.pool.id
   datastore_id     = data.vsphere_datastore.datastore.id
 
@@ -45,21 +45,21 @@ resource "vsphere_virtual_machine" "vm1" {
   clone {
     template_uuid = data.vsphere_virtual_machine.template.id
 
-    # customize {
-    #   linux_options {
-    #     host_name = var.vm-name[count.index]
-    #     domain    = "vishwacloudlab.in"
-    #   }
+    customize {
+      linux_options {
+        host_name = var.users[count.index].name
+        domain    = "vishwacloudlab.in"
+      }
 
-    #   network_interface {
-    #     ipv4_address = var.ip-add[count.index]
-    #     ipv4_netmask = 24
+      network_interface {
+        ipv4_address = var.ip-add[count.index]
+        ipv4_netmask = 24
 
 
-    #   }
-    #   dns_server_list = ["8.8.8.8", "1.1.1.1"]
-    #   ipv4_gateway = "157.119.43.1"
-    # }
+      }
+      dns_server_list = ["8.8.8.8"]
+      ipv4_gateway = "157.119.43.1"
+    }
   }
   extra_config = {
     "guestinfo.userdata"          = base64encode(local.cloudinit[count.index])

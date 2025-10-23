@@ -85,6 +85,15 @@ root@kube-master01:~#
 
 ```
 
+Reset the password
+```
+docker exec -it <container-id-or-name> reset-password
+# it will prompt:
+# New password for default administrator (user-xxxxx):
+# <enter-new-password>
+```
+
+
 ---
 
 ## ⚙️ **Alternative: Rancher on Kubernetes (for Production)**
@@ -129,4 +138,5 @@ If you already have a Kubernetes cluster (e.g. with K3s, RKE2, or AKS):
 | Quick demo / Lab        | **Docker single-node setup** ✅    |
 | Production / multi-node | **Helm on K3s or RKE2**           |
 | Lightweight local setup | **Rancher Desktop** (Windows/Mac) |
+
 

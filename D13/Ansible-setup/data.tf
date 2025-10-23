@@ -33,6 +33,7 @@ data "vsphere_virtual_machine" "template" {
 
 # Network
 data "vsphere_network" "mgmt" {
-  name          = "mgmt-pg"
+  #name          = "mgmt-pg"
+  name = "VM Network"
   datacenter_id = data.vsphere_datacenter.dc.id
 }
