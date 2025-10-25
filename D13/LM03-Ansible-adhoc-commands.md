@@ -55,6 +55,20 @@ ansible_ssh_private_key_file=~/.ssh/id_rsa
 ansible_ssh_common_args='-o StrictHostKeyChecking=no'
 ```
 
+
+* Actual Inventory file 
+```ini
+# lab_inventory.ini
+[webservers]
+web1 ansible_host=<respective host ip> ansible_user=<respective usr name>
+
+[webservers:vars]
+ansible_ssh_private_key_file=~/.ssh/id_rsa
+ansible_ssh_private_key_file=/home/<username>/key1.pem
+ansible_ssh_common_args='-o StrictHostKeyChecking=no'
+```
+
+
 ### Step 1.2: Test Inventory
 ```bash
 # List all hosts in inventory

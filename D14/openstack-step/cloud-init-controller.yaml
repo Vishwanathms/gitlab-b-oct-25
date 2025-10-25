@@ -1,0 +1,164 @@
+#cloud-config
+
+# Hostname configuration
+hostname: ${hostname}
+fqdn: ${hostname}.localdomain
+manage_etc_hosts: true
+
+# Users configuration
+users:
+  - name: ${ssh_username}
+    groups: sudo
+    shell: /bin/bash
+    sudo: ['ALL=(ALL) NOPASSWD:ALL']
+    ssh_authorized_keys:
+      - ${ssh_public_key}
+
+# System packages to install
+packages:
+  - git
+  - vim
+  - htop
+  - curl
+  - wget
+  - net-tools
+  - python3-pip
+  - python3-dev
+  - python3-venv
+  - bridge-utils
+  - ntp
+
+# Disable cloud-init network configuration
+network:
+  config: disabled
+
+# Write network configuration
+write_files:
+  - path: /etc/netplan/01-netcfg.yaml
+    content: |
+      network:
+        version: 2
+        renderer: networkd
+        ethernets:
+          ens160:
+            addresses:
+              - ${controller_ip}/${network_netmask}
+            gateway4: ${network_gateway}
+            nameservers:
+              addresses: [${dns_servers}]
+          ens192:
+            dhcp4: no
+            dhcp6: no
+    permissions: '0644'
+
+  - path: /opt/stack/devstack-install.sh
+    content: |
+      #!/bin/bash
+      set -e
+      
+      # Create stack user
+      sudo useradd -s /bin/bash -d /opt/stack -m stack || true
+      sudo chmod +x /opt/stack
+      echo "stack ALL=(ALL) NOPASSWD: ALL" | sudo tee /etc/sudoers.d/stack
+      
+      # Clone DevStack
+      cd /opt/stack
+      if [ ! -d "devstack" ]; then
+        sudo -u stack git clone https://opendev.org/openstack/devstack -b stable/2024.1
+      fi
+      
+      # Create local.conf for controller
+      cat > /opt/stack/devstack/local.conf << 'EOF'
+      [[local|localrc]]
+      
+      # Passwords
+      ADMIN_PASSWORD=${admin_password}
+      DATABASE_PASSWORD=${service_password}
+      RABBIT_PASSWORD=${service_password}
+      SERVICE_PASSWORD=${service_password}
+      
+      # Host configuration
+      HOST_IP=${controller_ip}
+      SERVICE_HOST=${controller_ip}
+      MYSQL_HOST=${controller_ip}
+      RABBIT_HOST=${controller_ip}
+      GLANCE_HOSTPORT=${controller_ip}:9292
+      
+      # Logging
+      LOGFILE=/opt/stack/logs/stack.sh.log
+      VERBOSE=True
+      LOG_COLOR=True
+      SCREEN_LOGDIR=/opt/stack/logs
+      
+      # Network configuration
+      IPV4_ADDRS_SAFE_TO_USE=${network_range}
+      FLOATING_RANGE=${floating_range}
+      PUBLIC_NETWORK_GATEWAY=${network_gateway}
+      
+      # Neutron configuration
+      Q_USE_SECGROUP=True
+  Q_FLOATING_ALLOCATION_POOL=start=$${floating_range%.*}.100,end=$${floating_range%.*}.200
+      PUBLIC_INTERFACE=ens192
+      
+      # Services to enable
+      disable_service tempest
+      enable_service rabbit mysql key
+      enable_service n-api n-crt n-cpu n-cond n-sch n-novnc n-api-meta placement-api placement-client
+      enable_service g-api g-reg
+      enable_service c-sch c-api c-vol
+      enable_service q-svc q-agt q-dhcp q-l3 q-meta
+      enable_service horizon
+      
+      # Multi-node configuration
+      MULTI_HOST=True
+      
+      [[post-config|$NOVA_CONF]]
+      [DEFAULT]
+      cpu_allocation_ratio=16.0
+      ram_allocation_ratio=1.5
+      
+      [libvirt]
+      virt_type=kvm
+      cpu_mode=host-passthrough
+      EOF
+      
+      # Set ownership
+      sudo chown -R stack:stack /opt/stack
+      
+      # Run stack.sh as stack user
+      cd /opt/stack/devstack
+      sudo -u stack ./stack.sh
+      
+    permissions: '0755'
+
+# Run commands
+runcmd:
+  # Apply network configuration
+  - netplan apply
+  
+  # Update system
+  - apt-get update
+  - apt-get upgrade -y
+  
+  # Configure NTP
+  - timedatectl set-timezone UTC
+  - systemctl enable ntp
+  - systemctl start ntp
+  
+  # Ensure stack directory exists
+  - mkdir -p /opt/stack/logs
+  - chmod 755 /opt/stack
+  
+  # Run DevStack installation in background
+  - nohup /opt/stack/devstack-install.sh > /opt/stack/logs/devstack-install.log 2>&1 &
+  
+  # Create completion marker
+  - echo "Controller cloud-init completed at $(date)" > /opt/stack/cloud-init-complete
+
+# Final message
+final_message: "OpenStack Controller initialization complete. DevStack installation started in background."
+
+# Reboot after setup
+power_state:
+  mode: reboot
+  condition: True

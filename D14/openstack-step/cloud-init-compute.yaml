@@ -1,0 +1,187 @@
+#cloud-config
+
+# Hostname configuration
+hostname: ${hostname}
+fqdn: ${hostname}.localdomain
+manage_etc_hosts: true
+
+# Users configuration
+users:
+  - name: ${ssh_username}
+    groups: sudo
+    shell: /bin/bash
+    sudo: ['ALL=(ALL) NOPASSWD:ALL']
+    ssh_authorized_keys:
+      - ${ssh_public_key}
+
+# System packages to install
+packages:
+  - git
+  - vim
+  - htop
+  - curl
+  - wget
+  - net-tools
+  - python3-pip
+  - python3-dev
+  - python3-venv
+  - bridge-utils
+  - ntp
+  - qemu-kvm
+  - libvirt-daemon-system
+  - libvirt-clients
+  - virtinst
+
+# Disable cloud-init network configuration
+network:
+  config: disabled
+
+# Write network configuration and scripts
+write_files:
+  - path: /etc/netplan/01-netcfg.yaml
+    content: |
+      network:
+        version: 2
+        renderer: networkd
+        ethernets:
+          ens160:
+            addresses:
+              - ${compute_ip}/${network_netmask}
+            gateway4: ${network_gateway}
+            nameservers:
+              addresses: [${dns_servers}]
+          ens192:
+            dhcp4: no
+            dhcp6: no
+    permissions: '0644'
+
+  - path: /etc/modprobe.d/kvm.conf
+    content: |
+      # Enable nested virtualization for KVM
+      options kvm_intel nested=1
+      options kvm_intel enable_shadow_vmcs=1
+      options kvm_intel enable_apicv=1
+      options kvm_intel ept=1
+    permissions: '0644'
+
+  - path: /opt/stack/devstack-install.sh
+    content: |
+      #!/bin/bash
+      set -e
+      
+      # Wait for controller to be ready
+      echo "Waiting for controller at ${controller_ip}..."
+      while ! ping -c 1 ${controller_ip} &> /dev/null; do
+        sleep 5
+      done
+      
+      # Create stack user
+      sudo useradd -s /bin/bash -d /opt/stack -m stack || true
+      sudo chmod +x /opt/stack
+      echo "stack ALL=(ALL) NOPASSWD: ALL" | sudo tee /etc/sudoers.d/stack
+      
+      # Clone DevStack
+      cd /opt/stack
+      if [ ! -d "devstack" ]; then
+        sudo -u stack git clone https://opendev.org/openstack/devstack -b stable/2024.1
+      fi
+      
+      # Create local.conf for compute
+      cat > /opt/stack/devstack/local.conf << 'EOF'
+      [[local|localrc]]
+      
+      # Compute node configuration
+      SERVICE_HOST=${controller_ip}
+      MYSQL_HOST=${controller_ip}
+      RABBIT_HOST=${controller_ip}
+      GLANCE_HOSTPORT=${controller_ip}:9292
+      
+      # Local host configuration
+      HOST_IP=${compute_ip}
+      
+      # Passwords (must match controller)
+      ADMIN_PASSWORD=placeholder
+      DATABASE_PASSWORD=placeholder
+      RABBIT_PASSWORD=placeholder
+      SERVICE_PASSWORD=placeholder
+      
+      # Logging
+      LOGFILE=/opt/stack/logs/stack.sh.log
+      VERBOSE=True
+      LOG_COLOR=True
+      SCREEN_LOGDIR=/opt/stack/logs
+      
+      # Network interface
+      PUBLIC_INTERFACE=ens192
+      
+      # Enable only compute services
+      ENABLED_SERVICES=n-cpu,q-agt,n-api-meta,placement-client
+      
+      # Multi-node configuration
+      MULTI_HOST=True
+      
+      # Libvirt configuration for nested virtualization
+      [[post-config|$NOVA_CONF]]
+      [DEFAULT]
+      compute_driver=libvirt.LibvirtDriver
+      
+      [libvirt]
+      virt_type=kvm
+      cpu_mode=host-passthrough
+      EOF
+      
+      # Set ownership
+      sudo chown -R stack:stack /opt/stack
+      
+      # Run stack.sh as stack user
+      cd /opt/stack/devstack
+      sudo -u stack ./stack.sh
+      
+    permissions: '0755'
+
+# Run commands
+runcmd:
+  # Apply network configuration
+  - netplan apply
+  
+  # Update system
+  - apt-get update
+  - apt-get upgrade -y
+  
+  # Configure NTP
+  - timedatectl set-timezone UTC
+  - systemctl enable ntp
+  - systemctl start ntp
+  
+  # Enable nested virtualization
+  - modprobe -r kvm_intel || true
+  - modprobe kvm_intel nested=1
+  
+  # Verify nested virtualization
+  - cat /sys/module/kvm_intel/parameters/nested > /opt/stack/nested-virt-status.txt
+  
+  # Configure libvirt
+  - systemctl enable libvirtd
+  - systemctl start libvirtd
+  - usermod -aG libvirt stack || true
+  
+  # Ensure stack directory exists
+  - mkdir -p /opt/stack/logs
+  - chmod 755 /opt/stack
+  
+  # Wait 5 minutes for controller to be ready before starting compute installation
+  - sleep 300
+  
+  # Run DevStack installation in background
+  - nohup /opt/stack/devstack-install.sh > /opt/stack/logs/devstack-install.log 2>&1 &
+  
+  # Create completion marker
+  - echo "Compute node cloud-init completed at $(date)" > /opt/stack/cloud-init-complete
+
+# Final message
+final_message: "OpenStack Compute node initialization complete. DevStack installation started in background."
+
+# Reboot after setup
+power_state:
+  mode: reboot
+  condition: True
